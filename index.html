@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dynamic Image Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>รวมภาพ/วิดีโอสมัยตอนป.6</h1>
+  </header>
+  
+  <main>
+    <section id="upload">
+      <h2>Upload Image/Video</h2>
+      <form id="upload-form" action="upload.php" method="POST" enctype="multipart/form-data">
+        <label for="file">Select an image or video:</label>
+        <input type="file" name="file" id="file" accept="image/*,video/*" required>
+        <button type="submit">Upload</button>
+      </form>
+    </section>
+
+    <section id="images">
+      <h2>Gallery</h2>
+      <div id="image-container"></div>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const imageContainer = document.getElementById("image-container");
+
+      // ดึงข้อมูลชื่อไฟล์รูปภาพจากเซิร์ฟเวอร์
+      const response = await fetch("images.php");
+      const mediaFiles = await response.json();
+
+      // แสดงไฟล์รูปภาพและวิดีโอ
+      mediaFiles.forEach((file) => {
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("image-wrapper");
+
+        const fileType = file.split('.').pop().toLowerCase();
+
+        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileType)) {
+          // แสดงรูปภาพ
+          const imgElement = document.createElement("img");
+          imgElement.src = `pic/${file}`;
+          imgElement.alt = file;
+          wrapper.appendChild(imgElement);
+        } else if (['mp4', 'mov', 'avi'].includes(fileType)) {
+          // แสดงวิดีโอ
+          const videoElement = document.createElement("video");
+          videoElement.src = `pic/${file}`;
+          videoElement.controls = true;
+          videoElement.width = 200;
+          wrapper.appendChild(videoElement);
+        }
+
+        const downloadLink = document.createElement("a");
+        downloadLink.href = `pic/${file}`;
+        downloadLink.download = file;
+        downloadLink.textContent = "Download";
+        downloadLink.classList.add("download-btn");
+
+        wrapper.appendChild(downloadLink);
+        imageContainer.appendChild(wrapper);
+      });
+    });
+
+    document.getElementById("upload-form").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const response = await fetch("upload.php", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.text();
+      alert(result);
+      location.reload(); // รีเฟรชหน้าเพื่อตรวจสอบไฟล์ใหม่
+    });
+  </script>
+</body>
+</html>
